@@ -1,6 +1,5 @@
-local path = (...):match("^(.-)reporters%..+")
-local TermColor = require(path .. "termcolor")
-local Result = require(path .. "result")
+local TermColor = require("pulse.utils.termcolor")
+local Result = require("pulse.core.result")
 
 local ConsoleReporter = {}
 ConsoleReporter.__index = ConsoleReporter

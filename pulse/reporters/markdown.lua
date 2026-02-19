@@ -1,5 +1,4 @@
-local path = (...):match("^(.-)reporters%..+")
-local Result = require(path .. "result")
+local Result = require("pulse.core.result")
 
 local MarkdownReporter = {}
 MarkdownReporter.__index = MarkdownReporter

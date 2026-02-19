@@ -1,10 +1,8 @@
 local path = (...):gsub("runner", "")
-
 local Result = require(path .. "result")
-
-local Test = require(path .. "test")
-local reporters = require(path .. "reporters")
 local Registry = require(path .. "registry")
+
+local reporters = require("pulse.reporters")
 
 local Runner = {}
 Runner.__index = Runner

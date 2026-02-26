@@ -33,14 +33,11 @@ function Registry:scan(directory)
                 return print("Error loading test:", fixture_or_err)
             end
             local module = get_module_name(module_path)
-            local module_tests = { fixture_or_err(function(name, f, ...)
+            fixture_or_err(function(name, f, ...)
                 if not self:filter(module, name) then
-                    return Test(module, name, f, ...)
+                    self.tests[#self.tests + 1] = Test(module, name, f, ...)
                 end
-            end) }
-            for i = 1, #module_tests do
-                table.insert(self.tests, module_tests[i])
-            end
+            end)
         elseif info.type == "directory" then
             self:scan(directory .. "/" .. filename)
         end

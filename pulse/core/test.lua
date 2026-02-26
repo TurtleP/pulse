@@ -68,7 +68,7 @@ function Test:__tostring()
 end
 
 return setmetatable(Test, {
-    __call = function(_, ...)
-        return Test.new(...)
+    __call = function(_, module, name, callback, ...)
+        return Test.new(module, name, callback, ...)
     end
 })

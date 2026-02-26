@@ -14,6 +14,11 @@ local function find_module_path(filename)
     return filename:gsub("%.lua$", ""):gsub("[/\\]", ".")
 end
 
+local function get_module_name(module_path)
+    module_path = module_path:gsub("%.lua$", ""):gsub("[/\\]", ".")
+    return module_path:match("test_(.+)")
+end
+
 function Registry:scan(directory)
     directory = directory or self.directory
     local items = love.filesystem.getDirectoryItems(directory)
@@ -23,21 +28,24 @@ function Registry:scan(directory)
 
         if filename:match(pattern) and info.type == "file" then
             local module_path = find_module_path(filepath)
-            local test_module, err = pcall(require, module_path)
-            if not test_module then
-                print("Error loading test:", err)
+            local success, fixture_or_err = pcall(require, module_path)
+            if not success then
+                return print("Error loading test:", fixture_or_err)
+            end
+            local module = get_module_name(module_path)
+            local module_tests = { fixture_or_err(function(name, f, ...)
+                if not self:filter(module, name) then
+                    return Test(module, name, f, ...)
+                end
+            end) }
+            for i = 1, #module_tests do
+                table.insert(self.tests, module_tests[i])
             end
         elseif info.type == "directory" then
             self:scan(directory .. "/" .. filename)
         end
     end
     return self.tests
-end
-
-function Registry:add(source, name, co_function, ...)
-    local module = find_module_path(source):match("test_(.+)")
-    if self:filter(module, name) then return end
-    self.tests[#self.tests + 1] = Test(module, name, co_function, ...)
 end
 
 local function to_set(list)

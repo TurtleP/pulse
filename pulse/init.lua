@@ -3,15 +3,30 @@
 -- Copyright (c) TurtleP
 --
 
-local pulse = { version = "0.1.0" }
-
 local PATH = (...):gsub("[^%.]+$", "")
 
-local function import(module)
-    return require(PATH .. module)
-end
+local function with_module(init)
+    local M = {}
 
-local paths = love.filesystem.getRequirePath()
+    local original_paths = love.filesystem.getRequirePath()
+
+    local library_paths = table.concat({
+        ("%s/?.lua"):format(PATH),
+        ("%s/?/init.lua"):format(PATH)
+    }, ";")
+
+    -- Extend require path
+    love.filesystem.setRequirePath(original_paths .. ";" .. library_paths)
+
+    local function import(module)
+        return require(PATH .. module)
+    end
+
+    init(M, import)
+
+    love.filesystem.setRequirePath(original_paths)
+    return M
+end
 
 local function wait_seconds(seconds)
     local target = love.timer.getTime() + seconds
@@ -24,9 +39,7 @@ local function skip(reason)
     error({ skip = true, reason = reason or "Skipped" }, 2)
 end
 
-local function load()
-    love.filesystem.setRequirePath(paths .. (";%s/?.lua"):format(PATH))
-
+local pulse = with_module(function(pulse, import)
     local Core = import("pulse.core")
     for core_name, value in pairs(Core) do
         pulse[core_name] = value
@@ -38,20 +51,19 @@ local function load()
     end
 
     local Utils = import("pulse.utils")
-    for util_name, value in pairs(Utils)do
+    for util_name, value in pairs(Utils) do
         pulse[util_name] = value
     end
 
     pulse.skip = skip
     pulse.wait_seconds = wait_seconds
 
-    love.filesystem.setRequirePath(paths)
-    return pulse
-end
+    pulse.run = function(config)
+        local runner = pulse.runner(config)
+        runner:run()
+    end
+end)
 
-pulse.run = function(config)
-    local runner = pulse.runner(config)
-    runner:run()
-end
+pulse._VERSION = "0.1.0"
 
-return load()
+return pulse

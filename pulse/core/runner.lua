@@ -1,6 +1,5 @@
-local path = (...):gsub("runner", "")
-local Result = require(path .. "result")
-local Registry = require(path .. "registry")
+local Result = require("pulse.core.result")
+local Registry = require("pulse.core.registry")
 
 local reporters = require("pulse.reporters")
 
@@ -35,12 +34,6 @@ function Runner.init(config)
     self.start_time = 0
 
     self.registry = Registry(directory, filter)
-    _G.test = function(name, co_function, ...)
-        local source = debug.getinfo(2, "S").short_src
-        source = source:gsub("\\", "/")
-        self.registry:add(source, name, co_function)
-        return test
-    end
     self.tests = self.registry:scan()
 
     return self

@@ -1,10 +1,4 @@
-local path = (...)
-
-local function import(filename)
-    return require(table.concat({ path, filename }, "."))
-end
-
-local ConsoleReporter = import("console")
-local MarkdownReporter = import("markdown")
+local ConsoleReporter = require("pulse.reporters.console")
+local MarkdownReporter = require("pulse.reporters.markdown")
 
 return { console = ConsoleReporter, markdown = MarkdownReporter }

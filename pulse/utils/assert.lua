@@ -8,49 +8,73 @@ local assert = setmetatable({}, {
 
 local ERROR_STACK_LEVEL = 2
 
-function assert:contains(t, expected)
+local function detail(message)
+    local indent = string.rep(" ", 4)
+    return message and ("\n%s-> (%s)"):format(indent, message) or ""
+end
+
+local function assert_message(message, extra)
+    local formatted = ("assertion failed: %s"):format(message)
+    return ("%s%s"):format(formatted, detail(extra))
+end
+
+function assert:contains(t, expected, extra)
     for _, v in pairs(t) do if v == expected then return v end end
-    error(("assertion failed: table does not contain %s"):format(
+    local message = "table does not contain %s"
+    error(assert_message(message:format(
         tostring(expected)
-    ), ERROR_STACK_LEVEL)
+    ), extra), ERROR_STACK_LEVEL)
 end
 
-function assert:are_equal(a, b)
+function assert:are_equal(a, b, extra)
     if a == b then return a end
-    error(("assertion failed: %s is not equal to %s"):format(
+    local message = "%s is not equal to %s"
+    error(assert_message(message:format(
         tostring(a), tostring(b)
-    ), ERROR_STACK_LEVEL)
+    ), extra), ERROR_STACK_LEVEL)
 end
 
-function assert:are_not_equal(a, b)
+function assert:are_not_equal(a, b, extra)
     if a ~= b then return a end
-    error(("assertion failed: %s is equal to %s"):format(
+    local message = "%s is equal to %s"
+    error(assert_message(message:format(
         tostring(a), tostring(b)
-    ), ERROR_STACK_LEVEL)
+    ), extra), ERROR_STACK_LEVEL)
 end
 
-function assert:is_true(value)
+function assert:is_true(value, extra)
     if value == true then return value end
-    error(("assertion failed: %s is not true"):format(
+    local message = "%s is not true"
+    error(assert_message(message:format(
         tostring(value)
-    ), ERROR_STACK_LEVEL)
+    ), extra), ERROR_STACK_LEVEL)
 end
 
-function assert:is_false(value)
+function assert:is_false(value, extra)
     if value == false then return value end
-    error(("assertion failed: %s is not false"):format(
+    local message = "%s is not false"
+    error(assert_message(message:format(
         tostring(value)
-    ), ERROR_STACK_LEVEL)
+    ), extra), ERROR_STACK_LEVEL)
 end
 
-function assert:is_some(value)
+function assert:is_some(value, extra)
     if value ~= nil then return value end
-    error(("assertion failed: value is not some"), ERROR_STACK_LEVEL)
+    local message = "value is not some"
+    error(assert_message(message, extra), ERROR_STACK_LEVEL)
 end
 
-function assert:is_none(value)
+function assert:is_none(value, extra)
     if value == nil then return value end
-    error(("assertion failed: value is not none"), ERROR_STACK_LEVEL)
+    local message = "value is not none"
+    error(assert_message(message, extra), ERROR_STACK_LEVEL)
+end
+
+function assert:should_fail(f, extra)
+    local ok, result = pcall(f)
+    if not ok then return result end
+    local message = "expected function to fail, but it succeeded"
+    error(assert_message(message, extra), ERROR_STACK_LEVEL)
 end
 
 return assert
